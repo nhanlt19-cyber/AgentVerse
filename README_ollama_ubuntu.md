@@ -62,9 +62,44 @@ source .venv/bin/activate
 ### 4.2. Cài dependencies
 
 ```bash
-pip install --upgrade pip
+# Cập nhật pip lên version mới nhất (quan trọng để có prebuilt wheels)
+pip install --upgrade pip setuptools wheel
+
+# Cài dependencies
 pip install -r requirements.txt
 ```
+
+**Lưu ý về lỗi `tiktoken`:**
+
+Nếu bạn gặp lỗi khi cài `tiktoken` (ví dụ: "can't find Rust compiler"), hãy thử các bước sau:
+
+1. **Cập nhật pip và thử lại** (thường giải quyết được vì pip mới có thể tìm thấy prebuilt wheel):
+   ```bash
+   pip install --upgrade pip setuptools wheel
+   pip install -r requirements.txt
+   ```
+
+2. **Nếu vẫn lỗi, cài Rust compiler** (chỉ khi cần build từ source):
+   ```bash
+   # Cài Rust qua rustup (khuyến nghị)
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   source $HOME/.cargo/env
+   
+   # Hoặc cài qua package manager
+   sudo apt-get update
+   sudo apt-get install -y rustc cargo
+   
+   # Sau đó thử cài lại
+   pip install -r requirements.txt
+   ```
+
+3. **Hoặc cài tiktoken riêng với version mới hơn**:
+   ```bash
+   pip install "tiktoken>=0.7.0"
+   pip install -r requirements.txt
+   ```
+
+> **Ghi chú**: File `requirements.txt` đã được cập nhật để dùng `tiktoken>=0.7.0` (thay vì `tiktoken==0.5.1`) để tương thích tốt hơn với Python 3.12 và có prebuilt wheels.
 
 ---
 
@@ -288,6 +323,31 @@ Nếu sau này bạn muốn quay lại dùng OpenAI:
   - Chạy lại:
     ```bash
     source .venv/bin/activate
+    pip install -r requirements.txt
+    ```
+
+- **Lỗi khi cài `tiktoken`** (ví dụ: "can't find Rust compiler"):
+  - **Giải pháp 1** (khuyến nghị): Cập nhật pip và thử lại:
+    ```bash
+    pip install --upgrade pip setuptools wheel
+    pip install -r requirements.txt
+    ```
+  - **Giải pháp 2**: Nếu vẫn lỗi, cài Rust compiler:
+    ```bash
+    # Cài Rust qua rustup (khuyến nghị)
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    source $HOME/.cargo/env
+    
+    # Hoặc cài qua package manager
+    sudo apt-get update
+    sudo apt-get install -y rustc cargo
+    
+    # Sau đó thử cài lại
+    pip install -r requirements.txt
+    ```
+  - **Giải pháp 3**: Cài tiktoken riêng với version mới hơn:
+    ```bash
+    pip install "tiktoken>=0.7.0"
     pip install -r requirements.txt
     ```
 
