@@ -35,19 +35,24 @@ else:
     api_key = None
     base_url = None
     model_name = None
+
+    # Standard OpenAI / Azure configuration
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
     OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL")
     AZURE_API_KEY = os.environ.get("AZURE_OPENAI_API_KEY")
     AZURE_API_BASE = os.environ.get("AZURE_OPENAI_API_BASE")
+
+    # Local LLM / vLLM configuration
     VLLM_BASE_URL = os.environ.get("VLLM_BASE_URL")
     VLLM_API_KEY = os.environ.get("VLLM_API_KEY", "EMPTY")
 
-    if not OPENAI_API_KEY and not AZURE_API_KEY:
-        logger.warn(
-            "OpenAI API key is not set. Please set an environment variable OPENAI_API_KEY or "
-            "AZURE_OPENAI_API_KEY."
-        )
-    elif OPENAI_API_KEY:
+    # Ollama configuration (OpenAI-compatible HTTP API)
+    # Example: OLLAMA_BASE_URL=http://127.0.0.1:11434/v1
+    OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1")
+    OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.1:latest")
+
+    if OPENAI_API_KEY:
+        # Cloud OpenAI
         DEFAULT_CLIENT = OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL)
         DEFAULT_CLIENT_ASYNC = AsyncOpenAI(
             api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL
@@ -55,6 +60,7 @@ else:
         api_key = OPENAI_API_KEY
         base_url = OPENAI_BASE_URL
     elif AZURE_API_KEY:
+        # Azure OpenAI
         DEFAULT_CLIENT = AzureOpenAI(
             api_key=AZURE_API_KEY,
             azure_endpoint=AZURE_API_BASE,
@@ -66,6 +72,28 @@ else:
         )
         api_key = AZURE_API_KEY
         base_url = AZURE_API_BASE
+    else:
+        # Fallback to local Ollama (no real API key required).
+        # This assumes Ollama is running with OpenAI-compatible endpoints.
+        logger.info(
+            f"No OPENAI_API_KEY or AZURE_OPENAI_API_KEY found. "
+            f"Falling back to local Ollama at {OLLAMA_BASE_URL}."
+        )
+        DEFAULT_CLIENT = OpenAI(api_key="EMPTY", base_url=OLLAMA_BASE_URL)
+        DEFAULT_CLIENT_ASYNC = AsyncOpenAI(api_key="EMPTY", base_url=OLLAMA_BASE_URL)
+        api_key = "EMPTY"
+        base_url = OLLAMA_BASE_URL
+
+        # Register Ollama model as a local LLM so it can be referenced in configs
+        if OLLAMA_MODEL not in LOCAL_LLMS:
+            LOCAL_LLMS.append(OLLAMA_MODEL)
+            LOCAL_LLMS_MAPPING[OLLAMA_MODEL] = {
+                "hf_model_name": OLLAMA_MODEL,
+                "base_url": OLLAMA_BASE_URL,
+                "api_key": "EMPTY",
+            }
+
+    # vLLM-style backends (kept for backwards compatibility)
     if VLLM_BASE_URL:
         if model_name := get_llm_server_modelname(VLLM_BASE_URL, VLLM_API_KEY, logger):
             # model_name = /mnt/llama/hf_models/TheBloke_Llama-2-70B-Chat-GPTQ
@@ -78,6 +106,7 @@ else:
                 "api_key": VLLM_API_KEY if VLLM_API_KEY else "EMPTY",
             }
             logger.info(f"Using vLLM model: {hf_model_name}")
+
     if hf_model_name := get_llm_server_modelname(
         "http://localhost:5000", logger=logger
     ):
@@ -478,15 +507,19 @@ class OpenAIChat(BaseChatModel):
             "gpt-4-1106-preview": 0.03,
             "gpt-4-0125-preview": 0.03,
             "llama-2-7b-chat-hf": 0.0,
+            # Local / Ollama models default to 0 cost; extend as needed.
+            "llama3.1:latest": 0.0,
+            "llama3.1:latest": 0.0,
         }
 
         model = self.args.model
-        if model not in input_cost_map or model not in output_cost_map:
-            raise ValueError(f"Model type {model} not supported")
+        # For unknown models, assume zero cost instead of raising.
+        input_cost = input_cost_map.get(model, 0.0)
+        output_cost = output_cost_map.get(model, 0.0)
 
         return (
-            self.total_prompt_tokens * input_cost_map[model] / 1000.0
-            + self.total_completion_tokens * output_cost_map[model] / 1000.0
+            self.total_prompt_tokens * input_cost / 1000.0
+            + self.total_completion_tokens * output_cost / 1000.0
         )
 
 
@@ -496,6 +529,17 @@ class OpenAIChat(BaseChatModel):
     reraise=True,
 )
 def get_embedding(text: str, attempts=3) -> np.array:
+    """
+    Get embeddings for a given text.
+
+    - If Azure / OpenAI keys are configured, use them.
+    - Otherwise, fall back to the same backend as DEFAULT_CLIENT, which for your
+      use case will typically be a local Ollama server exposing an OpenAI-compatible API.
+    """
+    # Prefer the same configuration as DEFAULT_CLIENT
+    client: Union[OpenAI, AzureOpenAI]
+    embedding_model = os.environ.get("EMBEDDING_MODEL", "llama3.1:latest")
+
     if AZURE_API_KEY and AZURE_API_BASE:
         client = AzureOpenAI(
             api_key=AZURE_API_KEY,
@@ -504,13 +548,15 @@ def get_embedding(text: str, attempts=3) -> np.array:
         )
     elif OPENAI_API_KEY:
         client = OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL)
+    else:
+        # Fall back to the same base_url used for chat (e.g. Ollama)
+        client = DEFAULT_CLIENT
+
     try:
         text = text.replace("\n", " ")
-        embedding = client.embeddings.create(
-            input=text, model="text-embedding-ada-002"
-        ).model_dump_json(indent=2)
-        return tuple(embedding)
+        response = client.embeddings.create(input=text, model=embedding_model)
+        # openai>=1 style response: response.data[0].embedding is a List[float]
+        return np.array(response.data[0].embedding, dtype=float)
     except Exception as e:
-        attempt += 1
         logger.error(f"Error {e} when requesting openai models. Retrying")
         raise

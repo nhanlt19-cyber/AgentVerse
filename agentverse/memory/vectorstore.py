@@ -5,6 +5,7 @@ from pydantic import Field
 from agentverse.message import Message
 from agentverse.llms import BaseLLM
 from agentverse.llms.openai import get_embedding, OpenAIChat
+import os
 
 
 from . import memory_registry
@@ -36,7 +37,9 @@ class VectorStoreMemory(BaseMemory):
     messages: List[Message] = Field(default=[])
     embedding2memory: dict = {}
     memory2embedding: dict = {}
-    llm: BaseLLM = OpenAIChat(model="gpt-4")
+    # Default to Ollama model if configured, otherwise fall back to gpt-4
+    llm_model: str = os.environ.get("LLM_MODEL", "llama3.1:latest")
+    llm: BaseLLM = OpenAIChat(model=llm_model)
 
     def add_message(self, messages: List[Message]) -> None:
         for message in messages:
