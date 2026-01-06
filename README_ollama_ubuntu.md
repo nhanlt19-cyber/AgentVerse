@@ -312,7 +312,7 @@ source env.sh
 agentverse-simulation --task simulation/nlp_classroom_9players
 
 # Nếu muốn test model Ollama khác (override model trong config)
-agentverse-simulation --task simulation/nlp_classroom_9players --model llama2:latest
+agentverse-simulation --task simulation/nlp_classroom_9players --model llama3.1:latest
 ```
 
 ### 9.3. GUI Example (Giao diện Web)
@@ -328,7 +328,7 @@ source env.sh
 agentverse-simulation-gui --task simulation/nlp_classroom_9players --server_name 0.0.0.0
 
 # Test model Ollama khác (override model trong config)
-agentverse-simulation-gui --task simulation/nlp_classroom_9players --server_name 0.0.0.0 --model llama2:latest
+agentverse-simulation-gui --task simulation/nlp_classroom_9players --server_name 0.0.0.0 --model llama3.1:latest
 ```
 
 Sau khi khởi chạy thành công, bạn có thể truy cập:
