@@ -144,14 +144,21 @@ class NlpClassroom9PlayersParser(OutputParser):
         # action_input = cleaned_output[1][len("Action Input:") :].strip()
         action_result = re.findall(r"Action:(.+)", text)
         result = re.findall(r"Action:(.+?)Action Input:(.+)", text, re.DOTALL)
+
+        # Fallback: if model did not follow the schema, treat the whole text as Speak output
         if len(action_result) == 0:
-            raise OutputParserError(text)
+            return AgentFinish({"output": text.strip()}, text)
 
         action = action_result[0].strip()
+        action_input = ""
         if action not in ["Listen", "RaiseHand"]:
             if len(result) == 0:
-                raise OutputParserError(text)
-            action_input = result[0][1].strip()
+                # If Action Input is missing, use the remaining text as content
+                # after the first "Action:" line.
+                parts = text.split("Action:", 1)
+                action_input = parts[1].strip() if len(parts) > 1 else text.strip()
+            else:
+                action_input = result[0][1].strip()
         if action == "RaiseHand":
             action_input = ""
 

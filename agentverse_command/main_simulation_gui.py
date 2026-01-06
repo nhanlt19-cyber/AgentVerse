@@ -22,16 +22,33 @@ parser.add_argument(
     help="Server name (use 0.0.0.0 to allow access from other machines in LAN)",
 )
 parser.add_argument("--debug", action="store_true", default=False, help="Debug mode")
+parser.add_argument(
+    "--model",
+    type=str,
+    default=os.environ.get(
+        "OLLAMA_MODEL", os.environ.get("LLM_MODEL", "llama3.1:latest")
+    ),
+    help="Ollama model name to use (overrides task config model)",
+)
 
 args = parser.parse_args()
 
+
 def cli_main():
+    if args.model:
+        os.environ["OLLAMA_MODEL"] = args.model
+        os.environ["LLM_MODEL"] = args.model
     ui = GUI(
         args.task,
         args.tasks_dir,
-        ui_kwargs={"share": args.share, "server_name": args.server_name, "debug": args.debug},
+        ui_kwargs={
+            "share": args.share,
+            "server_name": args.server_name,
+            "debug": args.debug,
+        },
     )
     ui.launch()
+
 
 if __name__ == "__main__":
     cli_main()

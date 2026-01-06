@@ -67,6 +67,8 @@ pip install --upgrade pip setuptools wheel
 
 # Cài dependencies
 pip install -r requirements.txt
+
+pip install -e .
 ```
 
 **Lưu ý về lỗi `tiktoken`:**
@@ -308,6 +310,9 @@ source env.sh
 
 # Chạy simulation qua CLI
 agentverse-simulation --task simulation/nlp_classroom_9players
+
+# Nếu muốn test model Ollama khác (override model trong config)
+agentverse-simulation --task simulation/nlp_classroom_9players --model llama2:latest
 ```
 
 ### 9.3. GUI Example (Giao diện Web)
@@ -321,6 +326,9 @@ source env.sh
 
 # Chạy simulation qua GUI (Gradio), lắng nghe trên mọi interface để truy cập từ laptop
 agentverse-simulation-gui --task simulation/nlp_classroom_9players --server_name 0.0.0.0
+
+# Test model Ollama khác (override model trong config)
+agentverse-simulation-gui --task simulation/nlp_classroom_9players --server_name 0.0.0.0 --model llama2:latest
 ```
 
 Sau khi khởi chạy thành công, bạn có thể truy cập:

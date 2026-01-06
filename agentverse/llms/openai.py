@@ -50,6 +50,10 @@ else:
     # Example: OLLAMA_BASE_URL=http://127.0.0.1:11434/v1
     OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1")
     OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.1:latest")
+    # Optional: force an override model for all LLM calls when running local
+    OLLAMA_MODEL_OVERRIDE = os.environ.get("LLM_MODEL") or os.environ.get(
+        "OLLAMA_MODEL"
+    )
 
     if OPENAI_API_KEY:
         # Cloud OpenAI
@@ -85,13 +89,18 @@ else:
         base_url = OLLAMA_BASE_URL
 
         # Register Ollama model as a local LLM so it can be referenced in configs
-        if OLLAMA_MODEL not in LOCAL_LLMS:
-            LOCAL_LLMS.append(OLLAMA_MODEL)
-            LOCAL_LLMS_MAPPING[OLLAMA_MODEL] = {
-                "hf_model_name": OLLAMA_MODEL,
+        def _register_local_model(model_name: str):
+            if model_name not in LOCAL_LLMS:
+                LOCAL_LLMS.append(model_name)
+            LOCAL_LLMS_MAPPING[model_name] = {
+                "hf_model_name": model_name,
                 "base_url": OLLAMA_BASE_URL,
                 "api_key": "EMPTY",
             }
+
+        _register_local_model(OLLAMA_MODEL)
+        if OLLAMA_MODEL_OVERRIDE:
+            _register_local_model(OLLAMA_MODEL_OVERRIDE)
 
     # vLLM-style backends (kept for backwards compatibility)
     if VLLM_BASE_URL:
@@ -213,10 +222,11 @@ class OpenAIChat(BaseChatModel):
             and base_url == OLLAMA_BASE_URL
             and args.get("model") not in LOCAL_LLMS
         ):
+            override_model = OLLAMA_MODEL_OVERRIDE or OLLAMA_MODEL
             logger.info(
-                f"Overriding model '{args.get('model')}' with local Ollama model '{OLLAMA_MODEL}'"
+                f"Overriding model '{args.get('model')}' with local Ollama model '{override_model}'"
             )
-            args["model"] = OLLAMA_MODEL
+            args["model"] = override_model
 
         if args["model"] in LOCAL_LLMS:
             if args["model"] in LOCAL_LLMS_MAPPING:
