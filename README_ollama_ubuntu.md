@@ -319,15 +319,15 @@ AgentVerse cũng cung cấp một demo website local cho các môi trường nà
 source .venv/bin/activate
 source env.sh
 
-# Chạy simulation qua GUI (Gradio)
-agentverse-simulation-gui --task simulation/nlp_classroom_9players
+# Chạy simulation qua GUI (Gradio), lắng nghe trên mọi interface để truy cập từ laptop
+agentverse-simulation-gui --task simulation/nlp_classroom_9players --server_name 0.0.0.0
 ```
 
 Sau khi khởi chạy thành công, bạn có thể truy cập:
 - **Từ máy Ubuntu**: [http://127.0.0.1:7860/](http://127.0.0.1:7860/)
-- **Từ laptop**: [http://10.0.12.81:7860/](http://10.0.12.81:7860/) (nếu Gradio được cấu hình để bind `0.0.0.0`)
+- **Từ laptop**: [http://10.0.12.81:7860/](http://10.0.12.81:7860/)
 
-> **Lưu ý**: Mặc định Gradio có thể chỉ bind `127.0.0.1`. Nếu bạn muốn truy cập từ laptop, có thể cần chỉnh sửa code hoặc dùng SSH tunnel.
+> **Lưu ý**: Tham số `--server_name 0.0.0.0` (và mặc định mới trong code) giúp Gradio bind trên mọi interface, cho phép truy cập từ máy khác trong LAN.
 
 ### 9.4. Cài đặt BMTools (Tùy chọn)
 
@@ -441,6 +441,22 @@ Nếu sau này bạn muốn quay lại dùng OpenAI:
     pip install -r requirements.txt --upgrade
     ```
   - **Lưu ý**: File `requirements.txt` đã được cập nhật để dùng `typing-extensions>=4.8.0` thay vì `typing-extensions==4.5.0` để tương thích với Python 3.12.
+
+- **Lỗi `ImportError: libGL.so.1: cannot open shared object file: No such file or directory` khi import `cv2` (OpenCV)**:
+  - **Nguyên nhân**: Thiếu thư viện hệ thống OpenGL mà OpenCV cần để xử lý ảnh.
+  - **Giải pháp**: Cài các thư viện hệ thống cần thiết (trên Ubuntu 24.04/noble gói `libgl1-mesa-glx` đã đổi tên):
+    ```bash
+    sudo apt-get update
+    # Ubuntu 24.04 (noble): dùng libgl1 thay cho libgl1-mesa-glx
+    sudo apt-get install -y libgl1 libglib2.0-0
+    # Nếu vẫn thiếu, bổ sung (tùy môi trường):
+    # sudo apt-get install -y libgl1-mesa-dev libglu1-mesa libgl1-mesa-dri
+    ```
+  - Sau đó, kích hoạt lại venv và chạy lại:
+    ```bash
+    source .venv/bin/activate
+    agentverse-simulation-gui --task simulation/nlp_classroom_9players --server_name 0.0.0.0
+    ```
 
 - **Lỗi `TypeError: Simulation.from_task() missing 1 required positional argument: 'tasks_dir'`**:
   - **Nguyên nhân**: Phiên bản mới của AgentVerse yêu cầu tham số `tasks_dir` khi gọi `Simulation.from_task()`.

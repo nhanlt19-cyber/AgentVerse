@@ -200,6 +200,24 @@ class OpenAIChat(BaseChatModel):
             args[k] = kwargs.pop(k, v)
         if len(kwargs) > 0:
             logger.warn(f"Unused arguments: {kwargs}")
+
+        # If we are in "pure local Ollama" mode (no OpenAI/Azure keys, using OLLAMA_BASE_URL)
+        # and the requested model does not correspond to a known local model,
+        # transparently route all requests to the configured Ollama model instead.
+        #
+        # This avoids 404 errors like "model 'gpt-4' not found" when task configs
+        # still reference OpenAI model names.
+        if (
+            not OPENAI_API_KEY
+            and not AZURE_API_KEY
+            and base_url == OLLAMA_BASE_URL
+            and args.get("model") not in LOCAL_LLMS
+        ):
+            logger.info(
+                f"Overriding model '{args.get('model')}' with local Ollama model '{OLLAMA_MODEL}'"
+            )
+            args["model"] = OLLAMA_MODEL
+
         if args["model"] in LOCAL_LLMS:
             if args["model"] in LOCAL_LLMS_MAPPING:
                 client_args["api_key"] = LOCAL_LLMS_MAPPING[args["model"]]["api_key"]

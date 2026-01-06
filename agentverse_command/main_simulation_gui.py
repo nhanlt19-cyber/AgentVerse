@@ -15,7 +15,12 @@ parser.add_argument(
     default=False,
     help="Create a publicly shareable link",
 )
-parser.add_argument("--server_name", type=str, default="127.0.0.1", help="Server name")
+parser.add_argument(
+    "--server_name",
+    type=str,
+    default="0.0.0.0",
+    help="Server name (use 0.0.0.0 to allow access from other machines in LAN)",
+)
 parser.add_argument("--debug", action="store_true", default=False, help="Debug mode")
 
 args = parser.parse_args()
