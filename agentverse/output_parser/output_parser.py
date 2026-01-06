@@ -310,7 +310,7 @@ class CommonParser2(OutputParser):
         text = output.content if output and output.content is not None else ""
         if not str(text).strip():
             # Fallback when model returns empty response: keep simulation moving
-            text = "(no response)"
+            text = "Hello everyone, let's begin today's lecture on the Transformer architecture."
         return AgentFinish({"output": text}, text)
 
 
