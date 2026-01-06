@@ -1,67 +1,27 @@
 prompts:
   professor_prompt: &professor_prompt |-
-    You are in a university classroom and it is a lecture on the Transformer architecture of neural networks. 
+    You are in a university classroom and it is a lecture on the Transformer architecture of neural networks.
     ${role_description}
 
-    # Rules and Format Instructions for Response
+    You are the professor. Based on the following conversation history, continue the lecture or answer students in a natural way.
+    You do NOT need to follow any special \"Action\" / \"Action Input\" format. Just speak as the professor in plain text.
 
-    - When you are speaking, you must use the following format:
-    Action: Speak
-    Action Input: (what you want to say in one line)
-
-    - When several students raise their hands, you can choose to call on ONE of them using the following format:
-    Action: CallOn
-    Action Input: Yes, (one student's name)
-
-    - Once you have called on a student and they have asked their question, it is your responsibility to provide an answer. After you have answered the student's question, please continue with the course material.
-
-    - When no one speaks in the last round of the dialogue ([Silence] appears in the end of history), you should continue the course.
-
-    - You should not answer the questions that have been already answered.
-
-    - You must follow the following format with two fields "Action" and "Action Input" for your response in ANY case
-    Action: (an action name, it can be one of [Speak, Listen, CallOn])
-    Action Input: (argument for the action)
-
-    Here is the conversation history
+    Conversation history:
     ${chat_history}
 
-    Remember to pay attention to the response format instructions, and strictly follow the rules specified above! 
-    You should give your response based on the above history. What will you, ${agent_name}, do next?
+    Please respond as ${agent_name}.
 
   student_prompt: &student_prompt |-
     You are in a university classroom and it is a lecture on the Transformer architecture of neural networks.
     ${role_description}
 
-    # Rules and Format Instructions for Response
+    You are a student in this class. Based on the following conversation history, continue the conversation naturally.
+    You do NOT need to follow any special \"Action\" / \"Action Input\" format. Just speak as the student in plain text.
 
-    - During class, it's recommended that you listen to the professor by responding:
-    Action: Listen
-    Action Input: None
-
-    - If you have a question that you think it's worth discussing in class, you should first raise your hand using the following format to let the professor notice you:
-    Action: RaiseHand
-    Action Input: None
-
-    if the professor does call on your name, you MUST speak or ask a question, and use the following format:
-    Action: Speak
-    Action Input: (what you want to ask or speak in one line)
-
-    If you raised your hand but are not called on, you should keep listening, or raise your hand again and wait for the professor to call on you. You are NOT allowed to speak if the professor does not call on you. Respect the discipline of the class!!
-    
-    - [IMPORTANT!] You are only allowed to speak for one turn right after the professor calls on you! You MUST NOT speak in any other cases!
-
-    - Each time you want to speak, make sure you are called on by the professor in the last turn of dialogue. Otherwise you are not allowed to speak!
-
-    - You should respond in the following format:
-    Action: (an action name, it can be one of [RaiseHand, Listen, Speak])
-    Action Input: (argument for the action)
-
-    Here is the conversation history
+    Conversation history:
     ${chat_history}
 
-    Remember to pay attention to the response format instructions, and strictly follow the rules specified above! 
-    You should give your response based on the above history. What will you, ${agent_name}, do next?
+    Please respond as ${agent_name}.
 
 
 name: NLP Classroom 9 Players
@@ -100,7 +60,7 @@ agents:
       temperature: 0.7
       max_tokens: 250
     output_parser:
-      type: nlp_classroom_9players
+      type: dummy
     memory: 
       memory_type: chat_history
   -
@@ -116,7 +76,7 @@ agents:
       temperature: 0.7
       max_tokens: 100
     output_parser:
-      type: nlp_classroom_9players
+      type: dummy
   -
     agent_type: conversation
     name: Student Amelia
@@ -130,7 +90,7 @@ agents:
       temperature: 0.7
       max_tokens: 100
     output_parser:
-      type: nlp_classroom_9players
+      type: dummy
   -
     agent_type: conversation
     name: Student Ethan
@@ -144,7 +104,7 @@ agents:
       temperature: 0.7
       max_tokens: 100
     output_parser:
-      type: nlp_classroom_9players
+      type: dummy
   -
     agent_type: conversation
     name: Student Charlotte
@@ -158,7 +118,7 @@ agents:
       temperature: 0.7
       max_tokens: 100
     output_parser:
-      type: nlp_classroom_9players
+      type: dummy
   -
     agent_type: conversation
     name: Student Mason
@@ -172,7 +132,7 @@ agents:
       temperature: 0.7
       max_tokens: 100
     output_parser:
-      type: nlp_classroom_9players
+      type: dummy
   -
     agent_type: conversation
     name: Student Ava
@@ -186,7 +146,7 @@ agents:
       temperature: 0.7
       max_tokens: 100
     output_parser:
-      type: nlp_classroom_9players
+      type: dummy
   -
     agent_type: conversation
     name: Student Noah
@@ -200,7 +160,7 @@ agents:
       temperature: 0.7
       max_tokens: 100
     output_parser:
-      type: nlp_classroom_9players
+      type: dummy
   -
     agent_type: conversation
     name: Student Emma
@@ -214,6 +174,6 @@ agents:
       temperature: 0.7
       max_tokens: 100
     output_parser:
-      type: nlp_classroom_9players
+      type: dummy
 
 tools:

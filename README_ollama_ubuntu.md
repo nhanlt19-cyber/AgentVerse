@@ -530,5 +530,3 @@ Nếu sau này bạn muốn quay lại dùng OpenAI:
    - Gọi các API `/chat`, `/make_decision`, `/update_location` qua IP `10.0.12.81`.
 
 ---
-
-
