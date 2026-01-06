@@ -307,7 +307,11 @@ class PrisonerDilemmaParser(OutputParser):
 class CommonParser2(OutputParser):
     # def parse(self, agent, env, output: LLMResult) -> Union[AgentAction, AgentFinish]:
     def parse(self, output: LLMResult) -> Union[AgentAction, AgentFinish]:
-        return AgentFinish({"output": output.content}, output.content)
+        text = output.content if output and output.content is not None else ""
+        if not str(text).strip():
+            # Fallback when model returns empty response: keep simulation moving
+            text = "(no response)"
+        return AgentFinish({"output": text}, text)
 
 
 @output_parser_registry.register("role_assigner")
