@@ -34,7 +34,7 @@ app.add_middleware(
 
 # Get the tasks directory path relative to this file
 tasks_dir = os.path.join(os.path.dirname(__file__), "agentverse", "tasks")
-agent_verse = Simulation.from_task("pokemon", tasks_dir)
+agent_verse = Simulation.from_task("simulation/pokemon", tasks_dir)
 
 
 @app.get("/")

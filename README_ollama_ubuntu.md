@@ -449,8 +449,20 @@ Nếu sau này bạn muốn quay lại dùng OpenAI:
     import os
     # ...
     tasks_dir = os.path.join(os.path.dirname(__file__), "agentverse", "tasks")
+    agent_verse = Simulation.from_task("simulation/pokemon", tasks_dir)
+    ```
+
+- **Lỗi `ValueError: Task pokemon not found` hoặc `Task __init__.py not found`**:
+  - **Nguyên nhân**: Task name phải bao gồm cả thư mục cha. Ví dụ: `"simulation/pokemon"` thay vì chỉ `"pokemon"`.
+  - **Giải pháp**: Đảm bảo bạn dùng đúng format task name:
+    ```python
+    # Đúng
+    agent_verse = Simulation.from_task("simulation/pokemon", tasks_dir)
+    
+    # Sai
     agent_verse = Simulation.from_task("pokemon", tasks_dir)
     ```
+  - **Lưu ý**: File `pokemon_server.py` đã được cập nhật để dùng `"simulation/pokemon"`.
 
 ---
 
