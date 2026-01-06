@@ -282,7 +282,86 @@ Bạn cũng có thể gọi các endpoint khác:
 
 ---
 
-## 9. Ghi chú về cấu hình model
+## 9. Chạy các Simulation Cases khác
+
+Ngoài Pokemon game, AgentVerse còn hỗ trợ nhiều simulation cases khác. Bạn có thể chạy chúng với Ollama.
+
+### 9.1. Framework Required Modules
+
+Simulation framework sử dụng các modules sau:
+```
+- agentverse 
+  - agents
+    - simulation_agent
+  - environments
+    - simulation_env
+```
+
+### 9.2. CLI Example (Command Line Interface)
+
+Bạn có thể tạo các môi trường multi-agent được cung cấp sẵn. Ví dụ với classroom scenario, có 9 agents: 1 giáo sư và 8 sinh viên.
+
+```bash
+# Đảm bảo đã kích hoạt .venv và set biến môi trường
+source .venv/bin/activate
+source env.sh
+
+# Chạy simulation qua CLI
+agentverse-simulation --task simulation/nlp_classroom_9players
+```
+
+### 9.3. GUI Example (Giao diện Web)
+
+AgentVerse cũng cung cấp một demo website local cho các môi trường này. Bạn có thể khởi chạy với:
+
+```bash
+# Đảm bảo đã kích hoạt .venv và set biến môi trường
+source .venv/bin/activate
+source env.sh
+
+# Chạy simulation qua GUI (Gradio)
+agentverse-simulation-gui --task simulation/nlp_classroom_9players
+```
+
+Sau khi khởi chạy thành công, bạn có thể truy cập:
+- **Từ máy Ubuntu**: [http://127.0.0.1:7860/](http://127.0.0.1:7860/)
+- **Từ laptop**: [http://10.0.12.81:7860/](http://10.0.12.81:7860/) (nếu Gradio được cấu hình để bind `0.0.0.0`)
+
+> **Lưu ý**: Mặc định Gradio có thể chỉ bind `127.0.0.1`. Nếu bạn muốn truy cập từ laptop, có thể cần chỉnh sửa code hoặc dùng SSH tunnel.
+
+### 9.4. Cài đặt BMTools (Tùy chọn)
+
+Nếu bạn muốn chạy các simulation cases có sử dụng tools (ví dụ: `simulation/nlp_classroom_3players_withtool`), bạn cần cài BMTools:
+
+```bash
+cd /path/to/workspace  # Thoát khỏi thư mục AgentVerse nếu đang ở trong đó
+
+git clone https://github.com/OpenBMB/BMTools.git
+cd BMTools
+pip install -r requirements.txt
+python setup.py develop
+
+# Quay lại thư mục AgentVerse
+cd /path/to/AgentVerse
+```
+
+> **Ghi chú**: Việc cài BMTools là tùy chọn. Nếu bạn không cài BMTools, các simulation cases không dùng tools vẫn chạy bình thường.
+
+### 9.5. Các Simulation Cases có sẵn
+
+Bạn có thể xem danh sách các simulation cases trong thư mục `agentverse/tasks/simulation/`. Một số ví dụ:
+
+- `simulation/nlp_classroom_9players`: Lớp học NLP với 9 agents
+- `simulation/nlp_classroom_3players`: Lớp học NLP với 3 agents
+- `simulation/prisoner_dilemma`: Prisoner's Dilemma game
+- `simulation/sde_team/sde_team_2players`: Software development team với 2 players
+- `simulation/db_diag`: Database diagnosis scenario
+
+Để xem chi tiết các simulation cases, tham khảo file `README_simulation_cases.md` trong dự án.
+
+---
+
+## 10. Ghi chú về cấu hình model
 
 - `LLM_MODEL`:
   - Điều khiển model mà AgentVerse sẽ dùng cho chat chính.
@@ -304,7 +383,7 @@ Nếu sau này bạn muốn quay lại dùng OpenAI:
 
 ---
 
-## 10. Khắc phục một số lỗi thường gặp
+## 11. Khắc phục một số lỗi thường gặp
 
 - **Lỗi kết nối tới Ollama**:
   - Kiểm tra `ollama serve` có đang chạy không.
@@ -351,9 +430,31 @@ Nếu sau này bạn muốn quay lại dùng OpenAI:
     pip install -r requirements.txt
     ```
 
+- **Lỗi `TypeError: type 'typing.TypeVar' is not an acceptable base type`** (khi chạy uvicorn):
+  - **Nguyên nhân**: `typing-extensions==4.5.0` không tương thích với Python 3.12.
+  - **Giải pháp**: Cập nhật `typing-extensions` lên phiên bản mới hơn:
+    ```bash
+    # Cập nhật typing-extensions
+    pip install --upgrade "typing-extensions>=4.8.0"
+    
+    # Hoặc cài lại toàn bộ requirements
+    pip install -r requirements.txt --upgrade
+    ```
+  - **Lưu ý**: File `requirements.txt` đã được cập nhật để dùng `typing-extensions>=4.8.0` thay vì `typing-extensions==4.5.0` để tương thích với Python 3.12.
+
+- **Lỗi `TypeError: Simulation.from_task() missing 1 required positional argument: 'tasks_dir'`**:
+  - **Nguyên nhân**: Phiên bản mới của AgentVerse yêu cầu tham số `tasks_dir` khi gọi `Simulation.from_task()`.
+  - **Giải pháp**: File `pokemon_server.py` đã được cập nhật để tự động tính toán đường dẫn `tasks_dir`. Nếu bạn gặp lỗi này, đảm bảo bạn đang dùng phiên bản mới nhất của `pokemon_server.py` hoặc cập nhật code như sau:
+    ```python
+    import os
+    # ...
+    tasks_dir = os.path.join(os.path.dirname(__file__), "agentverse", "tasks")
+    agent_verse = Simulation.from_task("pokemon", tasks_dir)
+    ```
+
 ---
 
-## 11. Tóm tắt nhanh quy trình triển khai
+## 12. Tóm tắt nhanh quy trình triển khai
 
 1. **Clone dự án**:
    ```bash

@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -31,7 +32,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-agent_verse = Simulation.from_task("pokemon")
+# Get the tasks directory path relative to this file
+tasks_dir = os.path.join(os.path.dirname(__file__), "agentverse", "tasks")
+agent_verse = Simulation.from_task("pokemon", tasks_dir)
 
 
 @app.get("/")
